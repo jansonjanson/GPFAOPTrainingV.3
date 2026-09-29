@@ -18,6 +18,7 @@ interface EndScreenProps {
 
 export const EndScreen: React.FC<EndScreenProps> = ({ score, energy, categories, history, onRestart, gameStats, isCriticalFail }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'debriefing'>('overview');
+  // Zeige die Final-Card nur an, wenn man wirklich GUTE Arbeit geleistet hat (kein kritischer Fehler und Score >= 40)
   const [showFinalCard, setShowFinalCard] = useState(!isCriticalFail && score >= 40);
 
   // Konfetti-Effekt beim Mounten der Erfolgs-Karte
