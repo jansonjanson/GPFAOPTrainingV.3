@@ -1,0 +1,176 @@
+import React, { useState } from 'react';
+import { 
+  X, 
+  BookOpen, 
+  Printer, 
+  ExternalLink, 
+  ChevronDown, 
+  CheckCircle2, 
+  FileText 
+} from 'lucide-react';
+import { getLocal, StorageKeys } from '../utils/gamification';
+
+interface FachhandbuchProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const QUELLEN = [
+  { titel: "gesund.bund.de - Gallensteine", url: "https://gesund.bund.de/gallensteine" },
+  { titel: "I Care Pflege - Präoperative Vorbereitung (Thieme)", url: "https://archive.org/download/icare-pflege-pra-op-kapitel-reduced/ICare%20Pflege%20pr%C3%A4%20OP%20Kapitel%20-%20Reduced.pdf" },
+  { titel: "CNE Magazin - Präoperatives Management", url: "https://elearn.zfg-ms.de/mod/resource/view.php?id=229043" },
+  { titel: "Dr. Weigl - Pathophysiologie Gallenkolik", url: "https://youtu.be/DD8ZivE-VAc" }
+];
+
+// Einzelne Kachel mit eigenem State (verhindert das gegenseitige Schließen)
+const AccordionItem = ({ id }: { id: string }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Da die genauen Texte in den einzelnen Modulen liegen, nutzen wir hier das Fachhandbuch als 
+  // formelles Logbuch der freigeschalteten Fachkompetenzen.
+  let cleanTitle = id.replace(/^[a-z0-9]+_/i, '').replace(/_/g, ' ');
+  cleanTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
+
+  return (
+    <div className="border border-slate-200 rounded-xl mb-3 overflow-hidden break-inside-avoid print:border-b print:mb-4 print:rounded-none">
+      <button 
+        onClick={() => setIsOpen(!isOpen)} 
+        className="print:hidden w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer"
+      >
+        <div className="flex items-center space-x-3 text-left">
+          <CheckCircle2 className="w-5 h-5 text-teal-600 flex-shrink-0" />
+          <div>
+            <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Erfolgreich gesichert</span>
+            <span className="block font-bold text-slate-800">{cleanTitle}</span>
+          </div>
+        </div>
+        <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+      
+      {/* print:block erzwingt, dass im PDF IMMER alle Inhalte sichtbar sind, auch wenn sie im UI zu sind! */}
+      <div className={`${isOpen ? 'block' : 'hidden'} print:block p-4 sm:p-5 bg-white border-t border-slate-100`}>
+         <div className="hidden print:flex items-center space-x-2 mb-2 pb-2 border-b border-slate-100">
+           <CheckCircle2 className="w-4 h-4 text-teal-600" />
+           <h4 className="font-bold text-slate-800">{cleanTitle}</h4>
+         </div>
+         <p className="text-sm text-slate-700 leading-relaxed">
+           Dieser Fachwissens-Baustein wurde im Training erfolgreich bearbeitet und in der persönlichen Datenbank gesichert. Die detaillierten Inhalte können in den Primärquellen (siehe unten) jederzeit nachgeschlagen werden.
+         </p>
+      </div>
+    </div>
+  );
+};
+
+export const FachhandbuchModal: React.FC<FachhandbuchProps> = ({ isOpen, onClose }) => {
+  if (!isOpen) return null;
+
+  // Alle Nuggets aus allen 4 Modulen laden
+  const m1 = getLocal<string[]>(StorageKeys.MODUL1_NUGGETS, []);
+  const m2 = getLocal<string[]>(StorageKeys.MODUL2_NUGGETS, []);
+  const m3 = getLocal<string[]>(StorageKeys.MODUL3_NUGGETS, []);
+  const m4 = getLocal<string[]>(StorageKeys.MODUL4_NUGGETS, []);
+  
+  const allNuggets = [...new Set([...m1, ...m2, ...m3, ...m4])];
+
+  return (
+    <div className="fixed inset-0 z-[130] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 animate-in fade-in duration-200 print:static print:bg-white print:p-0 print:block">
+      <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden print:shadow-none print:border-none print:max-h-none print:h-auto print:block">
+        
+        {/* Header */}
+        <div className="bg-teal-900 text-white p-6 sm:p-7 relative flex-shrink-0 print:bg-white print:text-slate-900 print:border-b print:border-slate-200">
+          <button 
+            onClick={onClose}
+            className="absolute top-5 right-5 text-teal-200 hover:text-white transition-colors p-1 rounded-xl hover:bg-white/10 print:hidden"
+            title="Schließen"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          
+          <div className="flex items-center space-x-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-teal-800 border border-teal-700 flex items-center justify-center text-teal-300 print:bg-teal-50 print:text-teal-700 print:border-teal-200">
+              <BookOpen className="w-6 h-6" />
+            </div>
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Zentrales Fachhandbuch</h2>
+              <p className="text-xs sm:text-sm text-teal-200 print:text-slate-500 mt-1">
+                Wissensarchiv & Quellenverzeichnis ({allNuggets.length} gesicherte Einträge)
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Toolbar */}
+        <div className="bg-slate-50 border-b border-slate-200 px-6 py-3 flex items-center justify-between print:hidden">
+          <span className="text-xs font-semibold text-slate-500">
+            Klicken Sie auf eine Kachel, um sie zu öffnen.
+          </span>
+          <button
+            onClick={() => window.print()}
+            className="px-4 py-2 rounded-xl font-bold transition-all flex items-center space-x-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 shadow-sm cursor-pointer"
+          >
+            <Printer className="w-4 h-4" />
+            <span>Handbuch & Quellen als PDF</span>
+          </button>
+        </div>
+
+        {/* Content Area */}
+        <div className="p-6 overflow-y-auto space-y-8 print:overflow-visible print:p-6 print:h-auto">
+          
+          {/* Quellenverzeichnis */}
+          <section className="break-inside-avoid">
+            <h3 className="font-extrabold text-lg text-slate-900 mb-4 flex items-center space-x-2 border-b border-slate-200 pb-2">
+              <FileText className="w-5 h-5 text-slate-500" />
+              <span>Primärquellen & Leitlinien</span>
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {QUELLEN.map((quelle, i) => (
+                <a 
+                  key={i}
+                  href={quelle.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-teal-400 hover:bg-teal-50 transition-colors flex items-start justify-between group print:border-b print:rounded-none print:bg-transparent"
+                >
+                  <span className="text-xs font-bold text-slate-700 group-hover:text-teal-800">{quelle.titel}</span>
+                  <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-teal-600 print:hidden" />
+                </a>
+              ))}
+            </div>
+          </section>
+
+          {/* Learning Nuggets */}
+          <section>
+            <h3 className="font-extrabold text-lg text-slate-900 mb-4 flex items-center space-x-2 border-b border-slate-200 pb-2">
+              <CheckCircle2 className="w-5 h-5 text-slate-500" />
+              <span>Ihre gesicherten Learning Nuggets</span>
+            </h3>
+            
+            {allNuggets.length === 0 ? (
+              <div className="text-center py-10 bg-slate-50 rounded-2xl border border-dashed border-slate-300 print:hidden">
+                <BookOpen className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <p className="text-sm text-slate-500 font-medium">Noch keine Wissensbausteine gesichert.</p>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {allNuggets.map((id) => (
+                  <AccordionItem key={id} id={id} />
+                ))}
+              </div>
+            )}
+          </section>
+
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end print:hidden">
+          <button
+            onClick={onClose}
+            className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold transition-all shadow-sm cursor-pointer"
+          >
+            Handbuch schließen
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
