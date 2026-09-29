@@ -176,6 +176,13 @@ export default function App() {
       scrollRef.current.scrollTop = 0;
     }
     setIsTimerActive(true);
+  }, [currentSceneId, appState, currentScene]);
+    }
+    
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = 0;
+    }
+    setIsTimerActive(true);
   }, [currentSceneId, appState]);
 
   useEffect(() => {
