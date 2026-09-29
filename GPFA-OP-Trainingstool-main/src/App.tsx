@@ -21,8 +21,8 @@ import {
 } from 'lucide-react';
 import { DiagnoseModule } from './modul_diagnose/DiagnoseModule';
 import { AngstModule } from './modul_angst/AngstModule';
-import PraeOpModule from '../modul_prae_op/src/App';
-import PostOpModule from '../modul_post_op/src/App';
+import PraeOpModule from './modul_prae_op/src/App';
+import PostOpModule from './modul_post_op/src/App';
 import { TrainingLandingPage } from './components/TrainingLandingPage';
 import { CurriculumInfoModal } from './components/CurriculumInfoModal';
 import { TrainingTutorialOverlay } from './components/TrainingTutorialOverlay';
